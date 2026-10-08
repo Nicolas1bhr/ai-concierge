@@ -7,6 +7,10 @@ Contract Program) are tracked in their own headers and pinned in `PINS.yaml`.
 
 ## [Unreleased]
 
+### Added
+- Orchestration standard for delegated and multi-agent work (`docs/ORCHESTRATION-STANDARD.md`) and a `CLAUDE.md`
+  naming this project's gate, protected surfaces and record.
+
 ## [0.1.0] - 2026-10-08
 
 ### Added

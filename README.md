@@ -58,6 +58,7 @@ RUNTIME / PRODUCT CODE   (not yet)
 | [`threat-models/`](threat-models/) | Threat models per boundary |
 | [`design/`](design/) | Design projections (spatial / 3D compound) — derived from Canon, not Canon |
 | [`PINS.yaml`](PINS.yaml) | SHA-256 pins of every higher-authority document |
+| [`docs/`](docs/) | How delegated and multi-agent work on this repository is run ([orchestration standard](docs/ORCHESTRATION-STANDARD.md)) |
 
 ## Checks
 
