@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Nicolas1bhr/ai-concierge/contracts/constitution/invariant-record.schema.json",
+  "title": "Constitutional invariant record",
+  "description": "One machine-readable Foundation invariant. Shape follows Contract Program v0.1 §6.1–6.2. Serialization is not constitutional (§8.7); this schema is a contract-layer candidate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "title", "source", "statement", "status", "enforceability", "test_obligations", "failure_class"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^CF-[A-Z]{2,5}-[0-9]{3}$",
+      "description": "Stable ID: CF-<DIMENSION>-<NNN>. Never reused, never renumbered (ADR-0002)."
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document", "section"],
+      "properties": {
+        "document": { "type": "string", "minLength": 1 },
+        "section": { "type": "string", "minLength": 1 },
+        "item": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "statement": { "type": "string", "minLength": 1 },
+    "status": {
+      "enum": ["CANDIDATE_CONSTITUTIONAL"],
+      "description": "Adding a status value is a contract change and requires an ADR."
+    },
+    "applies_to": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "required_enforcement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum"],
+      "properties": {
+        "minimum": {
+          "enum": ["CRYPTOGRAPHIC", "HARD_PLATFORM", "HARD_BROKERED", "HARD_WHERE_ENFORCEABLE", "MEDIATED", "DETECTIVE", "ADVISORY"]
+        }
+      }
+    },
+    "enforceability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["current"],
+      "description": "How strongly the invariant is actually enforced today (§6.2). Unknown or advisory enforcement must never be represented as hard prevention.",
+      "properties": {
+        "current": {
+          "enum": ["CRYPTOGRAPHIC", "HARD_PLATFORM", "HARD_BROKERED", "MEDIATED", "DETECTIVE", "ADVISORY", "UNKNOWN"]
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Conformance results, formal models or attestations backing any level above DETECTIVE."
+        }
+      }
+    },
+    "test_obligations": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": ["property", "state_machine", "adversarial", "differential", "fault_injection", "recovery", "schema_compatibility", "stress_battery", "formal_model"]
+      }
+    },
+    "failure_class": { "enum": ["CONSTITUTIONAL_VIOLATION"] },
+    "notes": { "type": "string" }
+  }
+}

@@ -1,0 +1,30 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r tools/requirements.txt
+      - name: Constitutional checks must pass before a release
+        run: python tools/check.py
+      - name: Verify VERSION matches the tag
+        run: test "v$(cat VERSION)" = "$GITHUB_REF_NAME"
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" 'index($0, "## [" v "]") == 1 {f=1; next} /^(## )?\[/ {f=0} f' CHANGELOG.md > notes.md
+          prerelease=""; case "$version" in 0.*|*-*) prerelease="--prerelease";; esac
+          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md $prerelease

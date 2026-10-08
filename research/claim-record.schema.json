@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Nicolas1bhr/ai-concierge/research/claim-record.schema.json",
+  "title": "Atomic research claim record",
+  "description": "One external claim that affects a contract, security property, compatibility choice or implementation profile. Shape follows Contract Program v0.1 §2.1–2.4. A bare URL in a design document is not enough.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["claim_id", "statement", "class", "maturity", "source", "checked_at", "adoption_status"],
+  "properties": {
+    "claim_id": { "type": "string", "pattern": "^EXT-[A-Z]{2,6}-[0-9]{4}$" },
+    "statement": { "type": "string", "minLength": 1 },
+    "class": {
+      "enum": ["CANON", "ARCHITECTURAL_LAW", "DESIGN_CHOICE", "EXTERNAL_FACT", "INFERENCE", "CANDIDATE", "OPEN_QUESTION"]
+    },
+    "maturity": {
+      "enum": [
+        "M0_CANONICAL_STABLE_STANDARD",
+        "M1_OFFICIAL_STABLE_PROJECT_SPEC",
+        "M2_OFFICIAL_RELEASE_DOCUMENTATION",
+        "M3_ACTIVE_STANDARD_DRAFT",
+        "M4_OFFICIAL_EXPERIMENTAL_OR_DRAFT_FEATURE",
+        "M5_PEER_REVIEWED_RESEARCH",
+        "M6_PREPRINT_OR_EARLY_RESEARCH",
+        "M7_COMMUNITY_SECURITY_GUIDANCE",
+        "M8_SECONDARY_SOURCE"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["publisher", "title", "uri"],
+      "properties": {
+        "publisher": { "type": "string" },
+        "title": { "type": "string" },
+        "uri": { "type": "string", "format": "uri" },
+        "source_version": { "type": "string" },
+        "source_section": { "type": "string" }
+      }
+    },
+    "checked_at": { "type": "string", "format": "date-time" },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "establishes": { "type": "array", "items": { "type": "string" } },
+        "does_not_establish": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "interpretation": { "type": "string" },
+    "adoption_status": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z_]*$",
+      "description": "What Concierge has actually decided to do with the claim. A true fact is not automatically an architectural adoption."
+    },
+    "freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "class": { "type": "string" },
+        "revalidate_before": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "contradictions": { "type": "array", "items": { "type": "string" } }
+  }
+}

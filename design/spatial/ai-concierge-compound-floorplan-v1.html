@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AI Concierge Compound — Organizational Architecture v1</title>
+<style>
+  :root{
+    --bg:#0f1217; --panel:#151a21; --panel2:#1b222b; --line:#2b3440; --line2:#3a4654;
+    --paper:#f2efe7; --paper2:#e8e3d8; --ink:#1e252d; --muted:#6f7880;
+    --hq:#d8d2c5; --ops:#cdd8d4; --know:#d4d7c8; --assure:#d8ced0; --trust:#c9cbd2; --infra:#d7d0c4; --shadow:#c8c5cf;
+    --accent:#8db4ff; --work:#5d86ff; --secure:#d96e7a; --resource:#d6a84d; --ok:#7eb28a;
+    --font: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);color:#edf1f5;font-family:var(--font);overflow:hidden}
+  button,select{font:inherit}
+  button{color:inherit}
+  .app{height:100vh;display:grid;grid-template-rows:56px 1fr 40px}
+  .topbar{display:flex;align-items:center;gap:18px;padding:0 18px;border-bottom:1px solid #252d37;background:#11151b}
+  .brand{display:flex;align-items:center;gap:10px;min-width:310px}
+  .brandmark{width:24px;height:24px;border:1px solid #727f90;border-radius:5px;display:grid;place-items:center;font-size:11px;font-weight:800;letter-spacing:.04em}
+  .brand h1{font-size:13px;margin:0;font-weight:700;letter-spacing:.02em}
+  .brand small{display:block;color:#8e99a6;font-size:10px;margin-top:2px}
+  .viewtabs{display:flex;gap:5px;background:#0c0f14;border:1px solid #242b34;border-radius:8px;padding:4px}
+  .viewtabs button,.toolbar button,.overlay-btn,.mini-btn,.floor-tab{border:1px solid transparent;background:transparent;border-radius:6px;cursor:pointer}
+  .viewtabs button{padding:6px 10px;font-size:11px;color:#aeb8c4}
+  .viewtabs button.active{background:#202833;border-color:#303c49;color:#fff}
+  .topspacer{flex:1}
+  .status{display:flex;align-items:center;gap:12px;font-size:10px;color:#9aa6b2}
+  .pulse{width:7px;height:7px;background:#7eb28a;border-radius:50%;box-shadow:0 0 0 4px rgba(126,178,138,.08)}
+  .main{min-height:0;display:grid;grid-template-columns:minmax(680px,1fr) 392px}
+  .workspace{position:relative;min-width:0;min-height:0;background:#10141a}
+  .canvas-wrap{position:absolute;inset:0;padding:14px 12px 14px 14px}
+  .canvas-shell{width:100%;height:100%;background:var(--paper);border-radius:10px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.05),0 18px 60px rgba(0,0,0,.22);position:relative}
+  #campusSvg{width:100%;height:100%;display:block;background:var(--paper)}
+  .toolbar{position:absolute;left:28px;top:28px;display:flex;gap:6px;z-index:5}
+  .toolbar .group{display:flex;gap:4px;padding:4px;background:rgba(19,23,29,.91);border:1px solid #313945;border-radius:8px;box-shadow:0 7px 24px rgba(0,0,0,.18)}
+  .toolbar button{padding:7px 9px;font-size:10px;color:#c3ccd6;border-color:transparent}
+  .toolbar button.active{background:#293342;border-color:#3a485a;color:#fff}
+  .map-note{position:absolute;left:28px;bottom:27px;background:rgba(19,23,29,.92);border:1px solid #313945;border-radius:8px;padding:9px 11px;max-width:410px;z-index:5}
+  .map-note b{font-size:10px;letter-spacing:.09em;text-transform:uppercase}
+  .map-note p{font-size:10px;line-height:1.45;color:#aeb9c5;margin:4px 0 0}
+  .legend{position:absolute;right:24px;bottom:27px;background:rgba(242,239,231,.94);color:var(--ink);border:1px solid #c9c4ba;border-radius:7px;padding:8px 10px;z-index:4;font-size:9px;display:flex;gap:12px;box-shadow:0 5px 18px rgba(0,0,0,.08)}
+  .legend span{display:flex;gap:5px;align-items:center;white-space:nowrap}.sw{width:12px;height:3px;background:#777}.sw.walk{background:#a8a39a}.sw.ops{background:#5d86ff}.sw.sec{background:#d96e7a;border-top:1px dashed #7e2630}.sw.service{background:#7e776c}
+  .side{border-left:1px solid #252d37;background:var(--panel);min-height:0;display:flex;flex-direction:column}
+  .side-scroll{overflow:auto;padding:16px 16px 30px;scrollbar-width:thin;scrollbar-color:#3b4654 transparent}
+  .eyebrow{font-size:9px;color:#8692a0;text-transform:uppercase;letter-spacing:.13em;margin-bottom:6px}
+  .detail-title{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .detail-title h2{font-size:19px;line-height:1.1;margin:0;letter-spacing:-.02em}
+  .badge{font-size:9px;border:1px solid #34404c;border-radius:999px;padding:4px 7px;color:#b9c4cf;white-space:nowrap}
+  .detail-desc{font-size:11px;color:#a8b2bd;line-height:1.6;margin:10px 0 14px}
+  .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0 16px}
+  .metric{background:#11161c;border:1px solid #28313b;border-radius:7px;padding:9px}
+  .metric strong{display:block;font-size:16px}.metric span{font-size:8px;color:#7f8b97;text-transform:uppercase;letter-spacing:.08em}
+  .section{border-top:1px solid #28313b;padding-top:14px;margin-top:14px}
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}.section-head h3{font-size:10px;letter-spacing:.11em;text-transform:uppercase;margin:0;color:#c8d1da}.section-head small{font-size:9px;color:#74808c}
+  .floor-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+  .floor-tab{font-size:9px;padding:5px 7px;color:#919ca8;border-color:#303945;background:#12171d}.floor-tab.active{background:#293442;color:#fff;border-color:#415064}
+  .plan-frame{background:#eeeae0;border:1px solid #3a434d;border-radius:8px;overflow:hidden;aspect-ratio:1.5/1;position:relative}
+  #interiorSvg{width:100%;height:100%;display:block}
+  .room-info{margin-top:8px;background:#11161c;border:1px solid #28313b;border-radius:7px;padding:9px;min-height:58px}
+  .room-info b{display:block;font-size:10px;margin-bottom:3px}.room-info p{font-size:9px;color:#8e9aa7;line-height:1.45;margin:0}
+  .org-list{display:grid;gap:6px}.org-row{display:grid;grid-template-columns:9px 1fr auto;gap:8px;align-items:center;padding:8px;background:#11161c;border:1px solid #27313b;border-radius:7px;cursor:pointer}.org-dot{width:7px;height:7px;border-radius:50%;background:#728398}.org-row b{font-size:10px}.org-row small{display:block;font-size:8px;color:#7f8b98;margin-top:2px}.cap{font-size:9px;color:#98a4b1;font-family:var(--mono)}
+  .mission-box{background:#11161c;border:1px solid #29333e;border-radius:8px;padding:10px}.mission-box select{width:100%;background:#0c1116;color:#e8edf2;border:1px solid #313b47;border-radius:6px;padding:7px;font-size:10px}.mission-title{font-size:12px;font-weight:700;margin:10px 0 4px}.mission-meta{font-size:9px;color:#8f9aa5;line-height:1.5}.mission-steps{display:grid;gap:4px;margin-top:8px}.step{display:grid;grid-template-columns:20px 1fr auto;gap:6px;align-items:center;font-size:9px;padding:5px 6px;border-radius:5px;color:#8995a1}.step.active{background:#202a36;color:#fff}.step.done{color:#71806f}.step .num{font-family:var(--mono);font-size:8px}.step .place{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.step .state{font-size:8px}
+  .mission-controls{display:flex;gap:5px;margin-top:8px}.mini-btn{font-size:9px;padding:6px 8px;background:#202833;border-color:#33404f;color:#ccd5df}.mini-btn.primary{background:#3457b6;border-color:#466cd0;color:#fff}
+  .principle{font-size:10px;line-height:1.55;color:#9ca7b3;background:#12171d;border-left:2px solid #5777be;padding:8px 9px;border-radius:0 5px 5px 0}
+  .footer{display:flex;align-items:center;gap:18px;padding:0 18px;background:#0d1116;border-top:1px solid #222a33;font-size:9px;color:#74808b}.footer b{color:#9aa5b0}.footer .spacer{flex:1}.key{border:1px solid #35404b;border-bottom-width:2px;border-radius:4px;padding:1px 5px;color:#a8b3be;font-family:var(--mono);font-size:8px}
+
+  /* SVG */
+  .site-boundary{fill:#ece8de;stroke:#c8c2b7;stroke-width:1.5}
+  .landscape{fill:#e1e4d6;stroke:#c7cbbd;stroke-width:1}
+  .water{fill:#d9e1e0;stroke:#bbc8c7;stroke-width:1}
+  .road{fill:none;stroke:#c7c0b5;stroke-width:24;stroke-linecap:round;stroke-linejoin:round}.road-edge{fill:none;stroke:#f5f2ec;stroke-width:14;stroke-linecap:round;stroke-linejoin:round}
+  .walkway{fill:none;stroke:#b4afa5;stroke-width:4;stroke-linecap:round;stroke-dasharray:2 5}.service-route{fill:none;stroke:#8c8478;stroke-width:5;stroke-linecap:round;opacity:.65}.secure-route{fill:none;stroke:var(--secure);stroke-width:3;stroke-dasharray:7 5;opacity:0;transition:.2s}.infra-route{fill:none;stroke:#61798e;stroke-width:2;stroke-dasharray:3 4;opacity:0}
+  .building{cursor:pointer;transition:filter .15s,opacity .15s}.building .mass{stroke:#78766f;stroke-width:1.3;vector-effect:non-scaling-stroke}.building:hover .mass,.building.selected .mass{stroke:#222a31;stroke-width:2.2;filter:drop-shadow(0 4px 3px rgba(0,0,0,.12))}.building.dim{opacity:.35}.roofline{fill:none;stroke:rgba(255,255,255,.55);stroke-width:1.1;pointer-events:none}.courtyard{fill:#e7e7da;stroke:#aaa99b;stroke-width:1;pointer-events:none}.building-label{font-size:12px;font-weight:800;fill:#273039;letter-spacing:.06em;pointer-events:none}.building-sub{font-size:8px;fill:#687078;letter-spacing:.08em;pointer-events:none}.building-num{font-size:8px;font-family:var(--mono);fill:#70777c;pointer-events:none}.entrance{fill:#2f3943;stroke:#f2efe7;stroke-width:1}.secure-gate{fill:var(--secure)}
+  .zone-halo{fill:none;stroke-width:7;opacity:0;pointer-events:none;transition:.2s}.zone-halo.ops{stroke:#6194d7}.zone-halo.knowledge{stroke:#7e9b78}.zone-halo.assurance{stroke:#b27887}.zone-halo.trust{stroke:#b85e69}.zone-halo.infra{stroke:#a77f51}.zone-halo.hq{stroke:#727a83}
+  body.security-on .zone-halo{opacity:.27} body.security-on .secure-route{opacity:.85} body.security-on .infra-route{opacity:.45}
+  .work-route{fill:none;stroke:var(--work);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;opacity:0;filter:drop-shadow(0 0 4px rgba(93,134,255,.32));stroke-dasharray:11 8;animation:dash 1.1s linear infinite}.work-node{fill:var(--work);stroke:#fff;stroke-width:2;opacity:0}.work-label{font-size:9px;font-weight:700;fill:#27427d;opacity:0}.work-on .work-route,.work-on .work-node,.work-on .work-label{opacity:1}@keyframes dash{to{stroke-dashoffset:-19}}
+  .resource-chip{opacity:0}.resource-on .resource-chip{opacity:1}.resource-chip rect{fill:#f6f0df;stroke:#bda56d}.resource-chip text{font-size:8px;fill:#6d5424;font-family:var(--mono)}
+  .authority-edge{fill:none;stroke:#5b6571;stroke-width:2;stroke-dasharray:3 5;opacity:0}.authority-node{fill:#27323f;stroke:#fff;stroke-width:1.5;opacity:0}.authority-on .authority-edge,.authority-on .authority-node{opacity:.9}
+  .north{font-size:9px;fill:#6f746f;font-family:var(--mono)}
+  .scale{stroke:#565b5a;stroke-width:2}.scale-text{font-size:8px;fill:#656b69;font-family:var(--mono)}
+  .site-label{font-size:8px;fill:#8d8a82;letter-spacing:.16em}.shadow-link{fill:none;stroke:#8a8590;stroke-width:1.5;stroke-dasharray:8 7}
+  .external-edge{fill:none;stroke:#a4a098;stroke-width:1.2;stroke-dasharray:4 4}
+  .callout{font-size:8px;fill:#7d7b75}.callout-line{stroke:#9d9990;stroke-width:1}
+  .room{cursor:pointer;stroke:#7e817d;stroke-width:1.2;transition:.12s}.room:hover,.room.selected{stroke:#202830;stroke-width:2}.room-label{font-size:7.4px;fill:#29323a;pointer-events:none;font-weight:700}.room-sub{font-size:6.4px;fill:#6e757a;pointer-events:none}.corridor{fill:#dedbd2;stroke:#bdb8ae;stroke-width:1}.core{fill:#c9c8c1;stroke:#888982;stroke-width:1}.interior-note{font-size:6.3px;fill:#787c79;letter-spacing:.08em}
+  .mission-highlight{filter:drop-shadow(0 0 5px rgba(93,134,255,.55))}
+  .view-hidden{display:none!important}
+  .org-view{position:absolute;inset:14px 12px 14px 14px;background:#f1eee6;border-radius:10px;overflow:auto;color:#1e252d;padding:26px;display:none}.org-view.active{display:block}.org-canvas{min-width:1000px}.org-view h2{margin:0 0 6px;font-size:22px}.org-view p{margin:0 0 22px;color:#657079;font-size:11px;max-width:850px;line-height:1.6}.org-grid{display:grid;grid-template-columns:1fr 1.45fr 1fr;gap:18px}.org-card{border:1px solid #c8c4ba;border-radius:9px;background:#faf8f2;padding:14px;box-shadow:0 4px 14px rgba(0,0,0,.04)}.org-card h3{font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin:0 0 10px}.org-card .unit{padding:9px;border:1px solid #d2cec5;background:#f0ece4;border-radius:6px;margin:6px 0;font-size:10px}.org-card .unit b{display:block}.org-card .unit span{font-size:8px;color:#737b7f}.org-card .desk{display:inline-block;padding:4px 6px;margin:3px 3px 0 0;border-radius:4px;background:#e3dfd6;font-size:8px}.org-arrow{text-align:center;color:#868a87;font-size:11px;margin:8px 0}
+  @media(max-width:1100px){.main{grid-template-columns:1fr 340px}.brand{min-width:250px}.status .hide-sm{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="brandmark">AC</div><div><h1>Concierge Compound / Organizational Architecture</h1><small>interactive graybox · v1.0</small></div></div>
+    <div class="viewtabs" id="viewTabs">
+      <button class="active" data-view="campus">Campus</button>
+      <button data-view="organization">Organization</button>
+    </div>
+    <div class="topspacer"></div>
+    <div class="status"><span class="pulse"></span><span>synthetic runtime</span><span class="hide-sm">7 buildings · 18 permanent departments · dynamic desks/fleets</span></div>
+  </header>
+
+  <main class="main">
+    <section class="workspace">
+      <div class="canvas-wrap" id="campusView">
+        <div class="canvas-shell">
+          <div class="toolbar">
+            <div class="group" id="overlayGroup">
+              <button class="active" data-overlay="normal">Normal</button>
+              <button data-overlay="work">Work</button>
+              <button data-overlay="security">Security</button>
+              <button data-overlay="authority">Authority</button>
+              <button data-overlay="resource">Resources</button>
+            </div>
+          </div>
+
+          <svg id="campusSvg" viewBox="0 0 1200 760" role="img" aria-label="Interactive top-down site plan of the AI Concierge compound">
+            <defs>
+              <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#d9d4ca" stroke-width=".45"/></pattern>
+            </defs>
+            <rect width="1200" height="760" fill="url(#grid)" opacity=".42"/>
+            <path class="site-boundary" d="M55 78 L1060 78 Q1100 78 1116 118 L1145 590 Q1149 641 1092 662 L160 716 Q92 720 72 660 Z"/>
+            <path class="external-edge" d="M1067 102 L1097 573"/>
+            <text x="1080" y="315" class="site-label" transform="rotate(86 1080 315)">EXTERNAL / PUBLIC INTERFACE EDGE</text>
+
+            <!-- landscaping / site elements -->
+            <path class="landscape" d="M85 110h215l-10 98H92z"/>
+            <path class="landscape" d="M790 516h273l18 104-277 16z"/>
+            <path class="landscape" d="M388 520h271l7 86-283 1z"/>
+            <path class="water" d="M305 104c40-15 75-11 100 4s22 31-5 42-71 14-99 0-27-32 4-46z" opacity=".65"/>
+
+            <!-- roads -->
+            <path class="road" d="M93 640 C244 628 318 635 408 635 C610 635 780 631 1065 605"/>
+            <path class="road-edge" d="M93 640 C244 628 318 635 408 635 C610 635 780 631 1065 605"/>
+            <path class="road" d="M110 610 C104 505 102 378 121 217"/>
+            <path class="road-edge" d="M110 610 C104 505 102 378 121 217"/>
+            <text x="165" y="664" class="site-label">SERVICE LOOP / DELIVERIES / DEVICE ACCESS</text>
+
+            <!-- circulation -->
+            <path class="walkway" d="M536 595 L536 513 L552 468 L563 395 L567 277 L575 230"/>
+            <path class="walkway" d="M560 454 L734 441 L826 405"/>
+            <path class="walkway" d="M562 402 L401 388 L308 392"/>
+            <path class="walkway" d="M578 250 L780 233"/>
+            <path class="walkway" d="M722 448 L731 575"/>
+            <path class="service-route" d="M126 596 L210 556 L282 507"/>
+            <path class="service-route" d="M323 548 L274 506"/>
+            <path class="secure-route" d="M663 206 L784 194"/>
+            <path class="secure-route" d="M850 233 L831 293 L840 337"/>
+            <path class="secure-route" d="M792 193 L630 194 L590 260"/>
+            <path class="infra-route" d="M325 565 L371 495 L434 447"/>
+            <path class="infra-route" d="M293 580 L524 614"/>
+
+            <!-- Zone halos -->
+            <path class="zone-halo hq" d="M415 532h286v127H415z"/>
+            <path class="zone-halo ops" d="M142 272h409v251H142z"/>
+            <path class="zone-halo knowledge" d="M350 118h360v146H350z"/>
+            <path class="zone-halo assurance" d="M696 301h297v208H696z"/>
+            <path class="zone-halo trust" d="M742 112h292v153H742z"/>
+            <path class="zone-halo infra" d="M122 534h254v135H122z"/>
+
+            <!-- 01 HQ -->
+            <g class="building" data-building="hq">
+              <path class="mass" fill="var(--hq)" fill-rule="evenodd" d="M418 540 H693 V657 H418 Z M485 571 H625 V627 H485 Z"/>
+              <path class="roofline" d="M430 551h251v94H430z"/>
+              <rect class="courtyard" x="485" y="571" width="140" height="56"/>
+              <rect class="entrance" x="542" y="650" width="28" height="9" rx="1"/>
+              <text class="building-num" x="433" y="558">01</text>
+              <text class="building-label" x="449" y="558">CONCIERGE HOUSE</text>
+              <text class="building-sub" x="449" y="571">USER · EXECUTIVE · JURISDICTIONS</text>
+            </g>
+
+            <!-- 02 Operations Hall - U shape -->
+            <g class="building" data-building="operations">
+              <path class="mass" fill="var(--ops)" fill-rule="evenodd" d="M155 286 H547 V510 H155 Z M260 345 H442 V445 H260 Z"/>
+              <path class="roofline" d="M168 299h366v198H168z"/>
+              <rect class="courtyard" x="260" y="345" width="182" height="100"/>
+              <rect class="entrance" x="538" y="383" width="11" height="30" rx="1"/>
+              <rect class="entrance" x="305" y="503" width="30" height="9" rx="1"/>
+              <text class="building-num" x="173" y="307">02</text>
+              <text class="building-label" x="190" y="307">OPERATIONS HALL</text>
+              <text class="building-sub" x="190" y="320">SHARED SPECIALIST DEPARTMENTS · FLEET CAPACITY</text>
+              <text class="callout" x="272" y="393">mission courtyard</text>
+            </g>
+
+            <!-- 03 Knowledge & State Library -->
+            <g class="building" data-building="knowledge">
+              <path class="mass" fill="var(--know)" fill-rule="evenodd" d="M359 129 H696 V253 H359 Z M490 158 H571 V224 H490 Z"/>
+              <rect class="courtyard" x="490" y="158" width="81" height="66"/>
+              <path class="roofline" d="M373 141h309v99H373z"/>
+              <rect class="entrance" x="520" y="246" width="30" height="9" rx="1"/>
+              <text class="building-num" x="376" y="148">03</text>
+              <text class="building-label" x="392" y="148">KNOWLEDGE + STATE LIBRARY</text>
+              <text class="building-sub" x="392" y="161">WORLD MODEL · CONTEXT · PROVENANCE</text>
+            </g>
+
+            <!-- 04 Assurance Center -->
+            <g class="building" data-building="assurance">
+              <path class="mass" fill="var(--assure)" d="M704 319 H953 L983 352 V482 H745 L704 442 Z"/>
+              <path class="roofline" d="M719 333h225l24 25v109H751l-32-32z"/>
+              <rect class="entrance" x="700" y="391" width="9" height="28" rx="1"/>
+              <text class="building-num" x="724" y="340">04</text>
+              <text class="building-label" x="741" y="340">ASSURANCE CENTER</text>
+              <text class="building-sub" x="741" y="353">VERIFICATION · RECONCILIATION · REVIEW</text>
+            </g>
+
+            <!-- 05 Trust & Security Court: two submasses -->
+            <g class="building" data-building="trust">
+              <path class="mass" fill="var(--trust)" d="M756 126 H871 V239 H756 Z"/>
+              <path class="mass" fill="#bfc1ca" d="M913 126 H1015 V239 H913 Z"/>
+              <rect class="courtyard" x="872" y="142" width="40" height="82"/>
+              <path class="roofline" d="M767 137h93v91h-93zM924 137h80v91h-80z"/>
+              <rect class="secure-gate" x="871" y="179" width="42" height="9" rx="1"/>
+              <text class="building-num" x="772" y="147">05A</text>
+              <text class="building-label" x="790" y="147">SECURITY</text>
+              <text class="building-num" x="931" y="147">05B</text>
+              <text class="building-label" x="950" y="147">VAULT</text>
+              <text class="building-sub" x="780" y="255">TRUST + SECURITY COURT</text>
+            </g>
+
+            <!-- 06 Infrastructure Works -->
+            <g class="building" data-building="infrastructure">
+              <path class="mass" fill="var(--infra)" d="M137 548 H355 V661 H137 Z"/>
+              <path class="roofline" d="M149 560h194v88H149z"/>
+              <path d="M158 583h174M158 610h174" stroke="#a69d91" stroke-width="1"/>
+              <rect class="entrance" x="246" y="652" width="28" height="10" rx="1"/>
+              <text class="building-num" x="155" y="569">06</text>
+              <text class="building-label" x="173" y="569">INFRASTRUCTURE WORKS</text>
+              <text class="building-sub" x="173" y="582">RUNTIME · CAPACITY · CONNECTORS · UTILITIES</text>
+            </g>
+
+            <!-- Remote shadow annex -->
+            <path class="shadow-link" d="M1010 592 C1071 567 1110 519 1125 460"/>
+            <g class="building" data-building="shadow">
+              <path class="mass" fill="var(--shadow)" d="M1040 412 l69 -35 49 43 -19 74 -78 7 -37 -40 z"/>
+              <path class="roofline" d="M1053 418l54-27 36 32-14 58-61 5-29-31z"/>
+              <rect class="secure-gate" x="1035" y="447" width="13" height="8" transform="rotate(-20 1041 451)"/>
+              <text class="building-num" x="1061" y="429">07</text>
+              <text class="building-label" x="1076" y="429">SHADOW</text>
+              <text class="building-sub" x="1061" y="442">ISOLATED ANNEX</text>
+            </g>
+
+            <!-- context labels -->
+            <text x="500" y="704" class="site-label">SOUTH / USER ARRIVAL</text>
+            <text x="512" y="102" class="site-label">NORTH / KNOWLEDGE + CONTROL</text>
+            <line x1="530" y1="690" x2="545" y2="660" class="callout-line"/><text x="463" y="693" class="callout">public arrival plaza</text>
+            <line x1="995" y1="289" x2="936" y2="321" class="callout-line"/><text x="1002" y="290" class="callout">external action edge</text>
+
+            <!-- Work route generated dynamically -->
+            <polyline id="workRoute" class="work-route" points=""/>
+            <g id="workNodes"></g>
+
+            <!-- Authority sample path generated dynamically -->
+            <path id="authorityPath" class="authority-edge" d="M558 598 C550 520 465 450 365 380 C500 300 520 210 535 186"/>
+            <circle class="authority-node" cx="558" cy="598" r="5"/><circle class="authority-node" cx="365" cy="380" r="5"/><circle class="authority-node" cx="535" cy="186" r="5"/>
+
+            <!-- Resource chips -->
+            <g class="resource-chip" transform="translate(275 473)"><rect width="64" height="22" rx="4"/><text x="7" y="14">72% load</text></g>
+            <g class="resource-chip" transform="translate(190 625)"><rect width="72" height="22" rx="4"/><text x="7" y="14">61% runtime</text></g>
+            <g class="resource-chip" transform="translate(862 454)"><rect width="68" height="22" rx="4"/><text x="7" y="14">9 pending</text></g>
+
+            <!-- north / scale -->
+            <g transform="translate(1115 105)"><path d="M0 27 L8 0 L16 27 L8 20 Z" fill="#4d5558"/><text x="5" y="41" class="north">N</text></g>
+            <g transform="translate(930 698)"><line x1="0" y1="0" x2="100" y2="0" class="scale"/><line x1="0" y1="-4" x2="0" y2="4" class="scale"/><line x1="100" y1="-4" x2="100" y2="4" class="scale"/><text x="31" y="14" class="scale-text">~50 m</text></g>
+          </svg>
+
+          <div class="map-note"><b>Spatial rule</b><p>Buildings represent durable organizational or trust/infrastructure separation. Missions do not get buildings: they temporarily draw capacity from desks across this stable campus.</p></div>
+          <div class="legend"><span><i class="sw walk"></i>pedestrian</span><span><i class="sw ops"></i>mission flow</span><span><i class="sw sec"></i>secure</span><span><i class="sw service"></i>service</span></div>
+        </div>
+      </div>
+
+      <div class="org-view" id="orgView">
+        <div class="org-canvas">
+          <h2>Permanent organization vs. dynamic work</h2>
+          <p>The physical campus follows the permanent organization. Objectives and fleets are a second, many-to-many layer that uses the organization without rewriting it.</p>
+          <div class="org-grid">
+            <div class="org-card">
+              <h3>Management / Jurisdictions</h3>
+              <div class="unit"><b>Concierge Identity</b><span>one external relationship</span></div>
+              <div class="org-arrow">↓</div>
+              <div class="unit"><b>Executive Operations</b><span>objectives, commitments, attention, resources</span></div>
+              <div class="org-arrow">↓</div>
+              <div class="unit"><b>Domain Managers</b><span>Travel · Company · Household · Schedule · Finance · Projects …</span></div>
+              <div style="margin-top:10px;font-size:9px;color:#6f777b;line-height:1.5">These are ownership/jurisdiction structures. They commission work from shared specialist departments instead of owning a duplicate research/execution stack for every domain.</div>
+            </div>
+            <div class="org-card">
+              <h3>Shared operating institution</h3>
+              <div class="unit"><b>Research & Intelligence</b><span class="desk">source research</span><span class="desk">deep analysis</span><span class="desk">specialist investigation</span></div>
+              <div class="unit"><b>External Affairs</b><span class="desk">calls</span><span class="desk">email/messaging</span><span class="desk">browser interaction</span></div>
+              <div class="unit"><b>Digital & Technical Operations</b><span class="desk">build</span><span class="desk">terminal</span><span class="desk">device ops</span></div>
+              <div class="unit"><b>Administration & Transactions</b><span class="desk">forms/docs</span><span class="desk">payments</span><span class="desk">account admin</span></div>
+              <div class="unit"><b>Specialist Pool</b><span class="desk">temporary domain experts</span><span class="desk">surge capacity</span></div>
+              <div style="margin-top:10px;font-size:9px;color:#6f777b;line-height:1.5">A desk is a specialization/authority profile. A fleet is runtime capacity available to one or several desks; workers can be allocated across multiple objectives.</div>
+            </div>
+            <div class="org-card">
+              <h3>Independent common services</h3>
+              <div class="unit"><b>Knowledge + State</b><span>world model · context · provenance · canonical stores</span></div>
+              <div class="unit"><b>Assurance</b><span>verification · reconciliation · review · exceptions</span></div>
+              <div class="unit"><b>Security + Trust</b><span>authorization · monitoring · secrets · identity brokering</span></div>
+              <div class="unit"><b>Infrastructure</b><span>runtime · model/connector routing · capacity · capability leases</span></div>
+              <div class="unit"><b>Shadow Organization</b><span>isolated independent reconstruction for high-impact work</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="side-scroll">
+        <div class="eyebrow" id="detailEyebrow">Building 01 / institutional core</div>
+        <div class="detail-title"><h2 id="detailName">Concierge House</h2><span class="badge" id="detailBadge">public + controlled</span></div>
+        <p class="detail-desc" id="detailDesc"></p>
+        <div class="metrics" id="metrics"></div>
+
+        <div class="section">
+          <div class="section-head"><h3>Internal plan</h3><small id="floorHint">select a floor</small></div>
+          <div class="floor-tabs" id="floorTabs"></div>
+          <div class="plan-frame"><svg id="interiorSvg" viewBox="0 0 360 240"></svg></div>
+          <div class="room-info" id="roomInfo"><b>Hover or click a room</b><p>Rooms are architectural projections of stable organizational functions, not one-off tasks.</p></div>
+        </div>
+
+        <div class="section">
+          <div class="section-head"><h3>Permanent units here</h3><small>not mission-specific</small></div>
+          <div class="org-list" id="unitList"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-head"><h3>Mission simulation</h3><small>dynamic layer</small></div>
+          <div class="mission-box">
+            <select id="missionSelect"></select>
+            <div class="mission-title" id="missionTitle"></div>
+            <div class="mission-meta" id="missionMeta"></div>
+            <div class="mission-steps" id="missionSteps"></div>
+            <div class="mission-controls"><button class="mini-btn primary" id="playMission">Play route</button><button class="mini-btn" id="nextMission">Next step</button><button class="mini-btn" id="resetMission">Reset</button></div>
+          </div>
+        </div>
+
+        <div class="section"><div class="section-head"><h3>Why this is a building</h3></div><div class="principle" id="buildingReason"></div></div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="footer"><b>Prototype principle:</b><span>spatialize the organization required to do the work, not the list of things the Concierge can do.</span><span class="spacer"></span><span><i class="key">1–5</i> overlays</span><span><i class="key">← →</i> mission step</span></footer>
+</div>
+
+<script>
+const buildings = {
+  hq:{num:'01',name:'Concierge House',badge:'public + controlled',kind:'Institutional core',desc:'The user-facing and managerial heart of the institution. It owns identity, objectives, delegated jurisdictions, executive coordination and decisions — not specialist execution capacity.',reason:'This warrants a building because it is the durable institutional home of the Concierge and the primary human interface. It concentrates broad authority and management while deliberately avoiding specialist tool execution.',metrics:[['5','levels'],['8','managers'],['4','decisions']],units:[['Concierge Identity','One persistent user-facing persona'],['Executive Operations','Objectives, commitments, attention, resources'],['Domain Management','Travel, company, household, schedule, finance and other jurisdictions'],['Strategy & Consequence','Counterfactuals and high-impact review']],floors:[
+    {id:'g',label:'Ground',rooms:[['Lobby + Concierge Hall',18,36,92,128,'User-facing arrival, conversation, objective intake and status.'],['Decision Inbox',118,36,74,58,'Only choices that genuinely require human judgment.'],['Override Desk',118,102,74,62,'Correct, redirect, stop or amend interpretation.'],['Continuity Desk',200,36,68,128,'Deferred objectives, awaiting conditions and unresolved work.'],['Transit Core',276,36,54,128,'Fast route to upper floors and campus.']]},
+    {id:'f1',label:'Executive',rooms:[['Mission Control',18,34,108,130,'Active objectives and decomposition.'],['Commitments',134,34,72,60,'Tracked promises and unresolved reality.'],['Attention Office',134,102,72,62,'Routes handle-silently, digest, decision and interrupt states.'],['Resource Desk',214,34,70,60,'Objective-level resource envelopes and stopping conditions.'],['Delegation Registry',214,102,116,62,'Inspect authority lineage from user to tool.']]},
+    {id:'f2',label:'Jurisdictions',rooms:[['Manager Atrium',18,34,100,132,'Live managers and ownership.'],['Travel / Mobility',126,34,90,58,'Jurisdiction office, not a travel worker silo.'],['Company / Work',224,34,106,58,'Long-lived company and project ownership.'],['Household / Personal',126,100,90,64,'Household and personal infrastructure responsibility.'],['Schedule / Commitments',224,100,106,64,'Schedule coherence and commitments.']]},
+    {id:'f3',label:'Strategy',rooms:[['Consequence Theater',18,34,128,132,'Preview downstream obligations, costs and dependencies.'],['Counterfactual Lab',154,34,84,62,'Compare hypothetical branches without confusing them with committed state.'],['Conflict Chamber',246,34,84,62,'Resolve policy/objective/preference conflicts.'],['High-Impact Review',154,104,176,62,'Prepares consequential work for stronger authorization or shadow review.']]},
+    {id:'roof',label:'Roof',rooms:[['Institution Map',18,34,92,132,'Whole-organization state and responsibilities.'],['Jurisdiction Observatory',118,34,92,132,'Health of delegated domains.'],['System Health Deck',218,34,112,132,'Capacity, incidents and degraded capabilities.']]}
+  ]},
+  operations:{num:'02',name:'Operations Hall',badge:'shared specialist workforce',kind:'Primary operations',desc:'The largest permanent workplace. It houses shared specialist departments and their desks. Missions temporarily compose workers from here; no objective or domain receives a bespoke mini-company.',reason:'This building exists because these departments share high-frequency collaboration, similar working infrastructure and flexible workforce capacity. Their internal separation is departmental/desk-level rather than needing separate campus buildings.',metrics:[['5','departments'],['38','workers'],['72%','load']],units:[['Research & Intelligence','Evidence gathering, analysis, specialist investigation'],['External Affairs','Calling, messaging, email and web-facing interaction'],['Digital & Technical Operations','Build, terminal, browser automation and device/system operation'],['Administration & Transactions','Forms, documents, account operations and financial execution'],['Specialist Pool','Temporary specialists and surge capacity']],floors:[
+    {id:'g',label:'Ground',rooms:[['External Affairs',18,28,102,72,'Calls, messaging, email and public web interaction. Located on the outward-facing edge.'],['Admin + Transactions',18,108,102,90,'Documents, forms, accounts and controlled payment execution.'],['Mission Courtyard',128,58,104,105,'Shared temporary briefing/workgroup space. No permanent mission department.'],['Digital Operations',240,28,102,72,'Builder, browser and terminal desks.'],['Device + Systems Ops',240,108,102,90,'Device labs, remote systems and local computer control.']]},
+    {id:'f1',label:'Research',rooms:[['Research Floor',18,28,132,170,'Shared research fleet and source investigation desks.'],['Analysis Studio',158,28,86,82,'Synthesis, planning and deep analysis desks.'],['Specialist Pool',252,28,90,82,'Temporary domain specialist workers.'],['Mission Rooms',158,118,184,80,'Reconfigurable cross-functional rooms assembled only when needed.']]},
+    {id:'f2',label:'Surge',rooms:[['Flexible Fleet Deck',18,28,210,170,'Modular capacity that expands under large concurrent workloads.'],['Quiet / Isolation Pods',236,28,106,78,'Scoped work requiring reduced cross-talk.'],['Training + Evaluation',236,114,106,84,'Operational learning and controlled capability evaluation.']]}
+  ]},
+  knowledge:{num:'03',name:'Knowledge + State Library',badge:'common service',kind:'State / context infrastructure',desc:'A shared institutional service for authoritative context, the world model, provenance, versioned state and structured retrieval. Workers receive scoped mounts rather than magical global memory.',reason:'It deserves independent architecture because it is a system-wide source-of-truth service with distinct storage, provenance and access-control requirements. It must stay neutral across domains and missions.',metrics:[['6','truth stores'],['99.7%','freshness'],['11','unknowns']],units:[['Context Services','Scoped retrieval and context packaging'],['World State','Observed, believed, desired and expected state'],['Provenance & Versioning','Evidence lineage and reversible state history'],['Canonical Records','Canon, policy and durable institutional truth']],floors:[
+    {id:'g',label:'Service',rooms:[['Context Counter',18,34,86,132,'Workers request scoped authoritative context here.'],['World Graph Hall',112,34,122,132,'Inspectable entity and relationship graph.'],['Reconciliation Desk',242,34,88,62,'Updates belief from new observations.'],['Unknowns Registry',242,104,88,62,'Explicitly tracked gaps and contested beliefs.']]},
+    {id:'f1',label:'Truth stores',rooms:[['User Truth',18,34,72,132,'Preferences, policies, identity and personal state.'],['World Truth',98,34,72,132,'Bookings, messages, balances and observed external state.'],['Work Truth',178,34,72,132,'Objectives, tasks, owners and outcomes.'],['System Truth',258,34,72,62,'Capabilities, permissions and topology.'],['Operational Truth',258,104,72,62,'What workflows and channels actually work.']]},
+    {id:'b1',label:'Archive',rooms:[['Versioned State Archive',18,34,142,132,'Historic state with evidence, time and reason for change.'],['Canon Chamber',168,34,76,132,'Durable architectural and behavioral invariants.'],['Secure Broker Link',252,34,78,58,'Mediated route to sensitive records in the Vault.'],['Provenance Index',252,100,78,66,'Source and evidence lineage.']]}
+  ]},
+  assurance:{num:'04',name:'Assurance Center',badge:'independent control',kind:'Verification / reconciliation',desc:'An organizationally independent control center that checks whether reality actually became what the mission intended. It receives receipts and observations from every operating department.',reason:'Verification is intentionally separated from the teams that perform actions. This reduces self-certification and gives failures, contradictions and ambiguous outcomes a durable independent home.',metrics:[['9','pending'],['2','exceptions'],['96%','verified']],units:[['Verification','Outcome checks against expected state'],['Reconciliation','Observed vs believed vs desired state'],['Review & Audit','Independent evidence and quality review'],['Exception Control','Ambiguous, failed or contradictory outcomes']],floors:[
+    {id:'g',label:'Verification',rooms:[['Receipt Intake',18,34,82,132,'Receipts and external confirmations enter here.'],['Verification Floor',108,34,112,132,'Checks evidence against expected outcomes.'],['Observation Bay',228,34,102,62,'Fresh observations independent of tool response.'],['Hold Queue',228,104,102,62,'Ambiguous results held before retry or completion.']]},
+    {id:'f1',label:'Reconcile',rooms:[['Reconciliation Theater',18,34,132,132,'Observed / believed / desired comparison.'],['Exception Control',158,34,84,62,'Contradictions and partial outcomes.'],['Independent Review',250,34,80,62,'Higher-impact evidence review.'],['Follow-up Control',158,104,172,62,'Future conditions, retries and expected-state monitoring.']]}
+  ]},
+  trust:{num:'05',name:'Trust + Security Court',badge:'restricted',kind:'High-trust complex',desc:'Two deliberately distinct facilities sharing a controlled court: the Security Directorate and the Identity/Secret Vault. Proximity supports controlled brokering without merging their trust domains.',reason:'This is a genuine security boundary, not a decorative “security department.” Credentials, secrets and identity representation require containment; oversight must remain separately accountable from the vault that holds sensitive material.',metrics:[['2','trust domains'],['0','incidents'],['4','leases']],units:[['Security Directorate','Authorization, monitoring, audit and investigation'],['Identity + Secret Vault','Credentials, protected records and signed capability brokering'],['Security Watchers','Distributed policy and behavior observation'],['Access Brokerage','Temporary mediated secret/capability disclosure']],floors:[
+    {id:'court',label:'Secure court',rooms:[['Security Directorate',18,34,122,132,'Authorization, policy enforcement, incidents and investigations.'],['Controlled Court',148,34,64,132,'No casual cut-through; every crossing is attributable.'],['Identity + Secret Vault',220,34,110,132,'Credentials, sensitive records and capability brokering.']]},
+    {id:'security',label:'Security',rooms:[['Authorization Control',18,34,96,62,'Policy decisions and scope checks.'],['Watcher Ops',122,34,96,62,'Independent observation and anomaly detection.'],['Investigations',226,34,104,62,'Incident reconstruction and forensic review.'],['Security Review',18,104,144,62,'Consequential action review.'],['Escalation',170,104,160,62,'Containment and higher-authority routing.']]},
+    {id:'vault',label:'Vault',rooms:[['Identity Broker',18,34,92,132,'Acts as/for/disclosed assistant representation controls.'],['Secret Store',118,34,92,132,'Credentials and protected secrets.'],['Sensitive Records',218,34,112,62,'Protected personal/organizational records.'],['Capability Hatch',218,104,112,62,'Time-bounded mediated leases; no casual copying.']]}
+  ]},
+  infrastructure:{num:'06',name:'Infrastructure Works',badge:'service + restricted',kind:'Runtime / capacity',desc:'The operational substrate: schedulers, model/runtime pools, connector registry, environments, capability leasing and resource/capacity management. It supports every department without becoming a work domain.',reason:'This building exists because the runtime substrate has industrial service requirements, failure containment and infrastructure access patterns that are genuinely different from office work.',metrics:[['61%','runtime'],['14','environments'],['3','degraded']],units:[['Runtime Fabric','Event exchange, scheduler and worker allocation'],['Model + Connector Operations','Models, APIs, native integrations and routing'],['Environment Operations','Browsers, terminals, sandboxes and devices'],['Resource Control','Compute, tokens, time, money and capacity envelopes']],floors:[
+    {id:'g',label:'Runtime',rooms:[['Event Exchange',18,34,76,132,'Incoming user/world events and system queue traffic.'],['Task Scheduler',102,34,76,132,'Runnable work and worker allocation.'],['Runtime Pool',186,34,76,132,'Model workers, browsers and execution environments.'],['Capability Broker',270,34,60,62,'Leases approved tools to workers.'],['Retry Control',270,104,60,62,'Idempotency, duplicate prevention and safe retry.']]},
+    {id:'b1',label:'Systems',rooms:[['Model Routing',18,34,90,62,'Model pools and routing policy.'],['Connector Registry',116,34,90,62,'APIs and native integrations.'],['Environment Registry',214,34,116,62,'Browsers, terminals, sandboxes and devices.'],['System Truth',18,104,90,62,'Versions, capabilities, permissions and health.'],['Resource Control',116,104,90,62,'Compute, tokens, time, money and attention budgets.'],['Degraded Ops',214,104,116,62,'Fallbacks and reduced-capability operation.']]}
+  ]},
+  shadow:{num:'07',name:'Shadow Annex',badge:'isolated',kind:'Independent reconstruction',desc:'A physically and logically remote branch instantiated for sufficiently consequential work. It receives approved evidence, reconstructs the problem independently and challenges the primary branch.',reason:'Independence is the point. Ordinary campus circulation, privileged context and hidden assumptions must not leak into the shadow organization; only controlled evidence packages cross its boundary.',metrics:[['1','active review'],['0','shared context'],['1','airlock']],units:[['Independent Manager','Owns shadow reconstruction'],['Reconstruction Team','Builds an independent interpretation from approved evidence'],['Shadow Verification','Challenges assumptions and proposed action'],['Evidence Airlock','Only controlled evidence crosses']],floors:[
+    {id:'g',label:'Annex',rooms:[['Evidence Airlock',18,34,72,132,'Controlled incoming evidence; no ordinary context sync.'],['Reconstruction Floor',98,34,116,132,'Independent manager and worker fleet.'],['Challenge Room',222,34,108,62,'Alternative hypotheses and omitted-evidence review.'],['Shadow Verification',222,104,108,62,'Independent recommendation / veto evidence.']]}
+  ]}
+};
+
+const campusPoints={hq:[558,596],operations:[352,394],knowledge:[532,190],assurance:[836,402],trust:[885,192],infrastructure:[250,600],shadow:[1090,454]};
+const missions=[
+  {id:'flight',name:'Recover cancelled flight',meta:'Jurisdiction: Travel · 5 departments · 8 workers · budget €450 · approval > €250',steps:[
+    ['hq','Travel Manager','objective ownership'],['knowledge','Context Services','booking + identity context'],['operations','Research & Intelligence','alternatives + policy research'],['operations','External Affairs','airline / booking action'],['trust','Identity Broker','scoped representation lease'],['assurance','Verification','confirm journey + refund state'],['knowledge','World State','reconcile new reality'],['hq','Travel Manager','close objective / track remaining refund']
+  ]},
+  {id:'deploy',name:'Repair production website',meta:'Jurisdiction: Company · 4 departments · 6 workers · isolated execution · reversible deployment',steps:[
+    ['hq','Company Manager','objective ownership'],['operations','Research & Intelligence','diagnose / gather context'],['infrastructure','Environment Operations','lease isolated runtime'],['operations','Digital & Technical Ops','implement + test'],['assurance','Verification','observe production state'],['knowledge','System + Work Truth','record result + evidence'],['hq','Company Manager','close objective']
+  ]},
+  {id:'subscription',name:'Cancel subscription + stop billing',meta:'Jurisdiction: Household/Admin · 4 departments · 5 workers · payment state must be independently verified',steps:[
+    ['hq','Household Manager','objective ownership'],['knowledge','Context Services','account + policy context'],['operations','Admin + Transactions','prepare cancellation'],['operations','External Affairs','execute through provider'],['assurance','Verification','prove service ended'],['assurance','Follow-up Control','watch future billing condition'],['knowledge','World State','update observed/believed state'],['hq','Household Manager','resolve commitment when billing stops']
+  ]},
+  {id:'purchase',name:'High-impact purchase',meta:'Jurisdiction: Personal · shadow review required · independent challenge before transaction',steps:[
+    ['hq','Personal Manager','objective ownership'],['operations','Research & Intelligence','options + risk evidence'],['hq','Strategy & Consequence','counterfactual review'],['shadow','Reconstruction Team','independent challenge'],['trust','Identity + Secret Vault','payment / identity lease'],['operations','Admin + Transactions','execute purchase'],['assurance','Verification','receipt + real-world confirmation'],['knowledge','World State','reconcile purchase + obligations'],['hq','Personal Manager','close / track downstream commitments']
+  ]}
+];
+
+let selectedBuilding='hq', selectedFloor='g', selectedMission=0, missionStep=-1, playTimer=null;
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
+function renderBuilding(id){
+  selectedBuilding=id; const b=buildings[id]; selectedFloor=(b.floors[0]||{}).id;
+  $$('.building').forEach(el=>el.classList.toggle('selected',el.dataset.building===id));
+  $('#detailEyebrow').textContent=`Building ${b.num} / ${b.kind}`;
+  $('#detailName').textContent=b.name; $('#detailBadge').textContent=b.badge; $('#detailDesc').textContent=b.desc; $('#buildingReason').textContent=b.reason;
+  $('#metrics').innerHTML=b.metrics.map(m=>`<div class="metric"><strong>${m[0]}</strong><span>${m[1]}</span></div>`).join('');
+  $('#floorTabs').innerHTML=b.floors.map((f,i)=>`<button class="floor-tab ${i===0?'active':''}" data-floor="${f.id}">${f.label}</button>`).join('');
+  $('#unitList').innerHTML=b.units.map(u=>`<div class="org-row"><i class="org-dot"></i><div><b>${u[0]}</b><small>${u[1]}</small></div><span class="cap">permanent</span></div>`).join('');
+  $$('.floor-tab').forEach(btn=>btn.onclick=()=>renderFloor(btn.dataset.floor)); renderFloor(selectedFloor);
+}
+
+function renderFloor(fid){
+  const b=buildings[selectedBuilding], f=b.floors.find(x=>x.id===fid)||b.floors[0]; selectedFloor=f.id;
+  $$('.floor-tab').forEach(x=>x.classList.toggle('active',x.dataset.floor===f.id));
+  $('#floorHint').textContent=f.label;
+  const svg=$('#interiorSvg');
+  svg.innerHTML=`<rect width="360" height="240" fill="#eeeae0"/><path class="corridor" d="M8 202h344v24H8z"/><rect class="core" x="316" y="184" width="28" height="34" rx="2"/><text x="322" y="203" class="interior-note">CORE</text>${f.rooms.map((r,i)=>`<g class="room-group" data-index="${i}"><rect class="room" x="${r[1]}" y="${r[2]}" width="${r[3]}" height="${r[4]}" rx="2" fill="${roomFill(selectedBuilding,i)}"/><text class="room-label" x="${r[1]+6}" y="${r[2]+15}">${escapeXML(shortLabel(r[0],22))}</text><text class="room-sub" x="${r[1]+6}" y="${r[2]+28}">${r[3]>80?'permanent function':'controlled space'}</text></g>`).join('')}<text x="14" y="220" class="interior-note">${b.name.toUpperCase()} / ${f.label.toUpperCase()} / schematic 1:600</text>`;
+  svg.querySelectorAll('.room-group').forEach(g=>{const r=f.rooms[+g.dataset.index]; g.onmouseenter=()=>showRoom(r); g.onclick=()=>{svg.querySelectorAll('.room').forEach(x=>x.classList.remove('selected'));g.querySelector('.room').classList.add('selected');showRoom(r)}});
+  $('#roomInfo').innerHTML=`<b>${f.label} plan</b><p>${f.rooms.length} stable spaces. Temporary missions can occupy shared rooms or draw workers across these spaces without changing the organizational map.</p>`;
+}
+function roomFill(id,i){const map={hq:'#d9d3c6',operations:'#ccd9d5',knowledge:'#d5d9c9',assurance:'#d9cfd1',trust:'#c9cbd3',infrastructure:'#d8d0c3',shadow:'#cbc7d0'};return map[id]||'#ddd'}
+function showRoom(r){$('#roomInfo').innerHTML=`<b>${r[0]}</b><p>${r[5]}</p>`}
+function shortLabel(s,n){return s.length>n?s.slice(0,n-1)+'…':s}
+function escapeXML(s){return s.replace(/[<>&'\"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&apos;','"':'&quot;'}[c]))}
+
+function renderMissionSelect(){
+  $('#missionSelect').innerHTML=missions.map((m,i)=>`<option value="${i}">${m.name}</option>`).join(''); $('#missionSelect').value=selectedMission; renderMission();
+}
+function renderMission(){
+  const m=missions[selectedMission]; $('#missionTitle').textContent=m.name; $('#missionMeta').textContent=m.meta;
+  $('#missionSteps').innerHTML=m.steps.map((s,i)=>`<div class="step ${i===missionStep?'active':i<missionStep?'done':''}"><span class="num">${String(i+1).padStart(2,'0')}</span><span class="place">${buildings[s[0]].name} · ${s[1]}</span><span class="state">${i===missionStep?'LIVE':i<missionStep?'done':''}</span></div>`).join(''); updateMissionRoute();
+}
+function updateMissionRoute(){
+  const m=missions[selectedMission], upto=missionStep<0?m.steps.length-1:missionStep;
+  const pts=m.steps.slice(0,upto+1).map(s=>campusPoints[s[0]]);
+  $('#workRoute').setAttribute('points',pts.map(p=>p.join(',')).join(' '));
+  const nodes=$('#workNodes'); nodes.innerHTML=pts.map((p,i)=>`<circle class="work-node" cx="${p[0]}" cy="${p[1]}" r="6"/><text class="work-label" x="${p[0]+9}" y="${p[1]-9}">${i+1}</text>`).join('');
+  $$('.building').forEach(el=>el.classList.remove('mission-highlight'));
+  if(missionStep>=0){const bid=m.steps[missionStep][0];document.querySelector(`.building[data-building="${bid}"]`)?.classList.add('mission-highlight')}
+}
+function stepMission(delta=1){const m=missions[selectedMission]; missionStep=Math.max(-1,Math.min(m.steps.length-1,missionStep+delta)); renderMission(); if(missionStep>=0){renderBuilding(m.steps[missionStep][0]); ensureOverlay('work')}}
+function playMission(){clearInterval(playTimer); missionStep=-1; ensureOverlay('work'); renderMission(); playTimer=setInterval(()=>{if(missionStep>=missions[selectedMission].steps.length-1){clearInterval(playTimer);return}stepMission(1)},800)}
+function resetMission(){clearInterval(playTimer);missionStep=-1;renderMission()}
+
+function ensureOverlay(name){setOverlay(name);}
+function setOverlay(name){
+  document.body.classList.remove('work-on','security-on','authority-on','resource-on');
+  if(name!=='normal') document.body.classList.add(name+'-on');
+  $$('#overlayGroup button').forEach(b=>b.classList.toggle('active',b.dataset.overlay===name));
+  $$('.building').forEach(el=>el.classList.toggle('dim',name==='work' && !missions[selectedMission].steps.some(s=>s[0]===el.dataset.building)));
+}
+
+$$('.building').forEach(el=>el.addEventListener('click',()=>renderBuilding(el.dataset.building)));
+$$('#overlayGroup button').forEach(btn=>btn.onclick=()=>setOverlay(btn.dataset.overlay));
+$('#missionSelect').onchange=e=>{selectedMission=+e.target.value;missionStep=-1;renderMission()};
+$('#playMission').onclick=playMission; $('#nextMission').onclick=()=>stepMission(1); $('#resetMission').onclick=resetMission;
+$$('#viewTabs button').forEach(btn=>btn.onclick=()=>{const org=btn.dataset.view==='organization';$('#orgView').classList.toggle('active',org);$('#campusView').classList.toggle('view-hidden',org);$$('#viewTabs button').forEach(b=>b.classList.toggle('active',b===btn))});
+window.addEventListener('keydown',e=>{if(['1','2','3','4','5'].includes(e.key)){['normal','work','security','authority','resource'][+e.key-1]&&setOverlay(['normal','work','security','authority','resource'][+e.key-1])} if(e.key==='ArrowRight')stepMission(1); if(e.key==='ArrowLeft')stepMission(-1)});
+
+renderBuilding('hq'); renderMissionSelect();
+</script>
+</body>
+</html>

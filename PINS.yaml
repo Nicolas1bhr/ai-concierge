@@ -1,0 +1,23 @@
+# SHA-256 pins of every higher-authority document. Regenerate only for an accepted
+# change proposal: python3 tools/check.py --write-pins
+documents:
+- layer: canon
+  path: canon/AI_CONCIERGE_CANONICAL_PRODUCT_CONCEPT.md
+  version: unversioned
+  sha256: 5eb144e54596d30583e102f5d99076685e055d0adf0b2443da977062f06fe4d0
+- layer: foundation
+  path: foundation/CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2.md
+  version: '0.2'
+  sha256: 35fe0d7afeb8963765fa26f5b87596fb4f6de6ffd6bfc8bb89299e13dc902279
+- layer: foundation-superseded
+  path: foundation/superseded/CONCIERGE_FOUNDATION_ARCHITECTURE_v0.1.md
+  version: '0.1'
+  sha256: 23f1279fdb8f2b5413b6b8a73a39de958c6daab46eca44b1470870e42cdf58cd
+- layer: program
+  path: program/CONCIERGE_FOUNDATION_EXECUTABLE_CONTRACT_PROGRAM_v0.1.md
+  version: '0.1'
+  sha256: 033beda6d6af88c94a0df58b9727ae8805bd559e96c1b20229bd8afe2fb0e279
+- layer: design-projection
+  path: design/spatial/AI_CONCIERGE_3D_COMPOUND_SPATIAL_GAME_DESIGN_CANON_v0.2.md
+  version: '0.2'
+  sha256: fe1bcf2d1ca920ac2ebaf026775bb325a503977bcd33d1bbded3d89f3a4b1299

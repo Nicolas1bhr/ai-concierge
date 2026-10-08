@@ -1,0 +1,214 @@
+# Constitutional invariant registry — seed
+#
+# Transcribed verbatim from Foundation v0.2 §28 "Constitutional invariants v0.2" (items 1–22).
+# Record shape: Contract Program v0.1 §6.1. Schema: invariant-record.schema.json.
+#
+# Honesty rule (Contract Program §6.2): every record starts at enforceability UNKNOWN. Nothing is
+# enforced yet because nothing is implemented yet. Raising `current` requires evidence.
+#
+# Test obligations are filled in during Phase 1 (Gate P1: "every Foundation invariant has stable
+# ID and test obligations"). Only CF-AUTH-001 carries the obligations given in the Contract
+# Program's own §6.1 example. IDs follow the proposed naming rules in adr/0002.
+
+invariants:
+  - id: CF-AUTH-002
+    title: Capability is not authority
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 1 }
+    statement: Cognition does not own institutional authority merely by being capable.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-IDEN-001
+    title: Identity concepts remain distinguishable
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 2 }
+    statement: Identity, authentication, trust, authority, representation, and credential possession remain distinguishable.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-AUTH-001
+    title: Delegation cannot silently increase authority
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 3 }
+    statement: Delegation cannot silently increase authority.
+    status: CANDIDATE_CONSTITUTIONAL
+    applies_to: [AuthorityGrant, Delegation, DerivedCredential]
+    required_enforcement: { minimum: HARD_WHERE_ENFORCEABLE }
+    enforceability: { current: UNKNOWN }
+    test_obligations: [property, state_machine, adversarial, differential]
+    failure_class: CONSTITUTIONAL_VIOLATION
+    notes: ID, applies_to, required_enforcement and test_obligations taken from Contract Program §6.1.
+
+  - id: CF-EXT-001
+    title: Vocabulary does not grant authority
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 4 }
+    statement: No semantic extension grants itself authority by defining new vocabulary.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-INFO-001
+    title: Worker assumptions do not become truth
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 5 }
+    statement: No worker assumption silently becomes user truth, world truth, policy, or canon.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-INFO-002
+    title: Consumed content is not instruction
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 6 }
+    statement: No untrusted external content becomes institutional instruction merely because cognition consumed it.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-INFO-003
+    title: Secrets stay out of model-readable context
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 7 }
+    statement: No secret is placed in model-readable context when the needed capability can be safely mediated without doing so, subject to practical enforceability.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-EFF-001
+    title: No blind retry of uncertain effects
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 8 }
+    statement: No duplicate-sensitive effect is automatically retried while the prior outcome remains materially unknown.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-EFF-002
+    title: Attempt, receipt, observation and verification stay distinct
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 9 }
+    statement: Effect attempt, receipt, observed outcome, and verified outcome remain distinct.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-EVID-001
+    title: Completion claims carry proportionate evidence
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 10 }
+    statement: Every claimed high-consequence completion has evidence appropriate to the consequence.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-EFF-003
+    title: Replay does not repeat external effects
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 11 }
+    statement: Replay/recovery does not repeat external effects merely because internal history is replayed.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-FED-001
+    title: Foreign authentication is not local authorization
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 12 }
+    statement: Foreign authentication never implies local authorization.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-FED-002
+    title: Shared infrastructure is not shared root authority
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 13 }
+    statement: Shared infrastructure never implies shared compound root authority.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-ORG-001
+    title: Organization is not infrastructure privilege
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 14 }
+    statement: Organization does not automatically imply infrastructure privilege.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-RES-001
+    title: Resources and authority are independent
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 15 }
+    statement: Resource availability does not imply authority; authority does not imply resource availability.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-SIM-001
+    title: Simulation is not observed reality
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 16 }
+    statement: Simulation state never silently becomes observed reality.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-SEC-001
+    title: Enforcement strength is represented honestly
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 17 }
+    statement: Security enforcement strength is represented honestly; advisory controls are never labeled hard enforcement.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+    notes: tools/check.py enforces this rule for the registry itself — any level above DETECTIVE must cite evidence.
+
+  - id: CF-TCB-001
+    title: Untrusted parties are outside the root TCB by default
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 18 }
+    statement: Ordinary agents, models, generated code, web content, third-party tools, and foreign compounds are outside the root TCB by default.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-WORK-001
+    title: Continuity survives worker death
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 19 }
+    statement: Institutional state needed for continuity survives ordinary worker death.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-CHG-001
+    title: Self-improvement does not self-authorize
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 20 }
+    statement: Self-improvement cannot silently self-authorize broader real-world power.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-CHG-002
+    title: Constitutional change has its own path
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 21 }
+    statement: Constitutional changes follow a distinct, attributable, strongly authorized change path.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION
+
+  - id: CF-EXT-002
+    title: Novel dimensions cannot bypass existing boundaries
+    source: { document: CONCIERGE_FOUNDATION_UNBOUNDED_INSTITUTIONAL_SUBSTRATE_v0.2, section: "28. Constitutional invariants v0.2", item: 22 }
+    statement: Unknown future dimensions may extend semantics, but cannot bypass existing authority, information, evidence, security, and effect boundaries merely because they are novel.
+    status: CANDIDATE_CONSTITUTIONAL
+    enforceability: { current: UNKNOWN }
+    test_obligations: []
+    failure_class: CONSTITUTIONAL_VIOLATION

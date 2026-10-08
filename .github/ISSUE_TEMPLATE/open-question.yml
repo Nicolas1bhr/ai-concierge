@@ -1,0 +1,30 @@
+name: Open question or contradiction
+description: Something the Canon/Foundation does not decide, or where two documents conflict.
+title: "[OQ] "
+labels: [open-question]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options: [Open question, Contradiction]
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: Where
+      description: Document and section references (both sides, for a contradiction).
+    validations:
+      required: true
+  - type: textarea
+    id: blocks
+    attributes:
+      label: What it blocks
+      description: Contract family, phase gate or invariant IDs.
+  - type: textarea
+    id: detail
+    attributes:
+      label: Detail
+    validations:
+      required: true

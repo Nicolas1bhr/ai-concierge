@@ -1,0 +1,7 @@
+# Higher-authority documents and their pins need the maintainer's review.
+/canon/          @Nicolas1bhr
+/foundation/     @Nicolas1bhr
+/program/        @Nicolas1bhr
+/PINS.yaml       @Nicolas1bhr
+/contracts/      @Nicolas1bhr
+/tools/check.py  @Nicolas1bhr

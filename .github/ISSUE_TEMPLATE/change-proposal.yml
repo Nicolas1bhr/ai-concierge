@@ -1,0 +1,37 @@
+name: Change proposal
+description: Propose a change to the Canon, Foundation or Contract Program.
+title: "[Proposal] "
+labels: [change-proposal]
+body:
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Layer being changed
+      options: [Canon, Foundation, Contract Program, Contract]
+    validations:
+      required: true
+  - type: input
+    id: sections
+    attributes:
+      label: Sections affected
+      placeholder: "Foundation v0.2 §28 item 7"
+    validations:
+      required: true
+  - type: textarea
+    id: finding
+    attributes:
+      label: Finding that motivates the change
+      description: Implementation finding, ADR, experiment, research claim ID or contradiction (OQ-…). Changes flow upward only through evidence.
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Invariants and contracts affected
+      description: Invariant IDs (CF-…) and contract families, and how their enforceability changes.
